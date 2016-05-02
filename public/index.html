@@ -1,54 +1,36 @@
 <!doctype html>
 <html>
   <head>
-    <title>websocket example</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
+    <title>AuctionCenter</title>
+    <link href='https://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+	  <div id="header">
+	  	<h1>
+	  		AuctionCenter 
+	  		<small>from Magda & Konrad</small>
+	  	</h1>
+	  	<h3 id="username"></h3>
+	  </div>
 
+	  <div id="content">
+	  	<form action="">
+	      <input id="m" autocomplete="off" />
+	      <button>Send</button>
+	    </form>
+
+	    <div id="nots">
+	    	<h4>Notifications:</h4>
+	    	<ul id="messages"></ul>
+	    </div>
+
+	  </div>
+
+    
 
     <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
     <script src="socket.io/socket.io.js"></script>
-    <script>
-      var socket = io();
-      $('form').submit(function(){
-        //login Marta   -> Access denied / Access successful
-        //logout    -> successful / not successful
-        //getAuctions    -> list of running auctions
-        //bid 10 5   -> successful / not successful
-        //refresh 10   -> best bid / not
-        var args = $('#m').val().split(" ");
-        switch(args[0]) {
-          case 'login': socket.emit('login', args[1]); break;
-          case 'logout': socket.emit('logout'); break;
-          case 'getAuctions': socket.emit('getAuctions'); break;
-          case 'bid': socket.emit('bid', args[1], args[2]); break;
-          case 'refresh': socket.emit('refresh', args[1]); break;
-          default:
-            $('#messages').append($('<li>').text("Input failed"));
-        }
-        $('#m').val('');
-
-        socket.emit('chat message', $('#m').val());
-        $('#m').val('');
-        return false;
-      });
-      socket.on('chat message', function(msg){
-        $('#messages').append($('<li>').text(msg));
-      });
-    </script>
+    <script type="text/javascript" src="script.js"></script>
   </body>
 </html>

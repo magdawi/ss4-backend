@@ -21,7 +21,7 @@ http.listen(port, function(){
 
 io.on('connection', function(socket){
   socket.emit('chat message', 'Please Log In');
-  console.log('a user connected');
+  console.log('connected');
 
 socket.on('login', function(user){
 	var exist = false;
@@ -44,7 +44,7 @@ socket.on('logout', function(){
 socket.on('getAuctions', function(){
 	console.log('getAuctions');
 	for (var i = 0; i < auctions.length; i++) {
-		socket.emit('chat message', `Auctions ID: ${i}; Name: ${products[i].name}; Description: ${products[i].description}; Closetime: ${products[i].finish}`);		
+		socket.emit('chat message', `Auctions ID: ${i}; <br>Name: ${products[i].name}; <br>Description: ${products[i].description}; <br>Closetime: ${products[i].finish}`);		
 	}
 	
 });
@@ -105,7 +105,7 @@ socket.on('chat message', function(msg){
   });
 
   socket.on('disconnect', function(){
-    console.log('user disconnected');
+    console.log('disconnected');
   });
 });
 
