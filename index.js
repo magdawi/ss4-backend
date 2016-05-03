@@ -70,7 +70,6 @@ socket.on('refresh', function(auc){
 });
 
 function winner(a) {
-	let start = 0;
 	let amount = 1;
 	const arr = auctions[a];
 	arr.sort(compare);
@@ -79,16 +78,13 @@ function winner(a) {
 			amount++;
 		}
 		else if(amount > 1) {
-			const deleted = arr.splice(start, amount);
-			console.log(deleted);
-			i = start;
 			amount = 1;
 		}
 		else {
-			start = i+1;
+			return arr[i];
 		}
 	}
-	return arr[0];
+	return {id: "error", value: "There is no winner"};
 }
 
 function compare(a, b) {
