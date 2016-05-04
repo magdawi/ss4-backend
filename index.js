@@ -21,24 +21,43 @@ http.listen(port, function(){
 
 io.on('connection', function(socket){
   socket.emit('chat message', 'Please Log In');
+  let current_user = null;
   console.log('connected');
 
 socket.on('login', function(user){
-	var exist = false;
-	for (var i = 0; i < users.length; i++) {
-		if(users[i].name == user) exist = true;
-	}
-	if(!exist) {
-		users.push({name: user, id: socket.id});
-		socket.emit('chat message', `Login successful! Welcome '${user}'!`);
+	if(current_user == null) {
+		var exist = false;
+		for (var i = 0; i < users.length; i++) {
+			if(users[i].name == user || users[i].id == socket.id) exist = true;
+		}
+		if(!exist) {
+			users.push({name: user, id: socket.id});
+			current_user = {name: user, id: socket.id};
+			socket.emit('chat message', `Login successful! Welcome '${user}'!`);
+		}
+		else {
+			socket.emit('chat message', `Login denied!`);
+		}
 	}
 	else {
-		socket.emit('chat message', `Login denied! Name '${user}' is already taken! Try again!`);
+		socket.emit('chat message', `You're already logged in!`);
 	}
-  });
+});
 
 socket.on('logout', function(){
-	console.log(`logout ${socket.id}`);
+	if(current_user != null) {
+		console.log(`logout ${socket.id}`);
+		for (var i = 0; i < users.length; i++) {
+			if (users[i].id == socket.id) {
+				users.splice(i, 1);
+			}
+		}
+		current_user = null;
+		socket.emit('chat message', `Logout was successful!`);
+	}
+	else {
+		socket.emit('chat message', `You're not logged in!`);
+	}
 });
 
 socket.on('getAuctions', function(){
@@ -50,22 +69,32 @@ socket.on('getAuctions', function(){
 });
 
 socket.on('bid', function(auc, val){
-	console.log(`bid ${auc} ${val}`);
-	auc = parseInt(auc);
-	val = parseInt(val);
-	auctions[auc].push({id: socket.id, value: val});
-	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val}€.`);
+	if(current_user != null) {
+		console.log(`bid ${auc} ${val}`);
+		auc = parseInt(auc);
+		val = parseInt(val);
+		auctions[auc].push({id: socket.id, value: val});
+		socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
+	}
+	else {
+		socket.emit('chat message', 'Log in to bid for an auction!');
+	}
 });
 
 socket.on('refresh', function(auc){
-	console.log(`refresh ${auc}`);
-	const won = winner(auc);
-	console.log(won);
-	if(won.id === socket.id) {
-		socket.emit('chat message', `At the moment you have the best bid with ${won.value}.`);
+	if(current_user != null) {
+		console.log(`refresh ${auc}`);
+		const won = winner(auc);
+		console.log(won);
+		if(won.id === socket.id) {
+			socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
+		}
+		else{
+			socket.emit('chat message', `You don't have the lowest single bid.`);
+		}
 	}
-	else{
-		socket.emit('chat message', `You don't have the lowest single bid.`);
+	else {
+		socket.emit('chat message', 'Log in to refresh auctions!');
 	}
 });
 
