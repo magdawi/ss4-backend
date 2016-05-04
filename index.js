@@ -6,9 +6,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 5000;
 const users = [];
-const auctions = [
-	[{id: "1", value: 5}, {id: "2", value: 2}, {id: "3", value: 2}]
-];
+const auctions = [];
 const products = [
 	{name: "Regenschirm", description: "Regenschirm halt", finish: null}
 ];
@@ -82,9 +80,11 @@ socket.on('bid', function(auc, val){
 	console.log(`bid ${auc} ${val}`);
 	auc = parseInt(auc);
 	val = parseInt(val);
+	if (auctions[auc] == undefined) auctions[auc] = [];
+	var actualwinner = winner(auc);
 	auctions[auc].push({id: socket.id, value: val});
 	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
-	refresh(auc, socket);
+	refresh(auc, actualwinner);
 });
 
 socket.on('refresh', function(auc){
@@ -101,20 +101,29 @@ function finishAuction(auc) {
 }
 
 
-function refresh(a, socket) {
+function refresh(a, actualwinner) {
 	const won = winner(a);
-	if(won.id === socket.id) {
+
+	//ich bin neuer gewinner
+	if (won.id === socket.id) {
 		socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
+		if(actualwinner.id != 'error') io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
 	}
+	//biete daneben
 	else{
 		socket.emit('chat message', `You don't have the lowest single bid.`);
+		if (actualwinner.id !== won.id) {
+			console.log("winner", won.id);
+			io.sockets.connected[won.id].emit('chat message', `You have now the lowest single bid!!	 (auction ${a})`);
+		}
 	}
 }
 
 function winner(a) {
 	let amount = 1;
 	const arr = auctions[a];
-	arr.sort(compare);
+
+	if (arr.length > 1)	arr.sort(compare);
 	for(let i = 0; i < arr.length; i++) {
 		if(arr[i+1] && arr[i].value == arr[i+1].value) {
 			amount++;
