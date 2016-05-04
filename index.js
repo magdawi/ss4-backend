@@ -74,8 +74,8 @@ socket.on('bid', function(auc, val){
 		return;
 	}
 
-	if(auctions[auc] && !auctions[auc].finish) {
-		auctions[auc].finish = new Date(new Date().getTime() + 60000);
+	if(products[auc] && !products[auc].finish) {
+		products[auc].finish = new Date(new Date().getTime() + 60000);
 		setTimeout(finishAuction, 60000, auc);
 	}
 
