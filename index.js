@@ -10,7 +10,7 @@ const auctions = [
 	[{id: "1", value: 5}, {id: "2", value: 2}, {id: "3", value: 2}]
 ];
 const products = [
-	{name: "Regenschirm", description: "Regenschirm halt", finish: "timestamp+1min"}
+	{name: "Regenschirm", description: "Regenschirm halt", finish: null}
 ];
 
 app.use(express.static('public'));
@@ -69,34 +69,47 @@ socket.on('getAuctions', function(){
 });
 
 socket.on('bid', function(auc, val){
-	if(current_user != null) {
-		console.log(`bid ${auc} ${val}`);
-		auc = parseInt(auc);
-		val = parseInt(val);
-		auctions[auc].push({id: socket.id, value: val});
-		socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
-	}
-	else {
+	if(current_user == null) {
 		socket.emit('chat message', 'Log in to bid for an auction!');
+		return;
 	}
+
+	if(auctions[auc] && !auctions[auc].finish) {
+		auctions[auc].finish = new Date(new Date().getTime() + 60000);
+		setTimeout(finishAuction, 60000, auc);
+	}
+
+	console.log(`bid ${auc} ${val}`);
+	auc = parseInt(auc);
+	val = parseInt(val);
+	auctions[auc].push({id: socket.id, value: val});
+	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
+	refresh(auc, socket);
 });
 
 socket.on('refresh', function(auc){
-	if(current_user != null) {
-		console.log(`refresh ${auc}`);
-		const won = winner(auc);
-		console.log(won);
-		if(won.id === socket.id) {
-			socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
-		}
-		else{
-			socket.emit('chat message', `You don't have the lowest single bid.`);
-		}
-	}
-	else {
+	if(current_user == null) {
 		socket.emit('chat message', 'Log in to refresh auctions!');
+		return;
 	}
+	
+	refresh(auc, socket);
 });
+
+function finishAuction(auc) {
+
+}
+
+
+function refresh(a, socket) {
+	const won = winner(a);
+	if(won.id === socket.id) {
+		socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
+	}
+	else{
+		socket.emit('chat message', `You don't have the lowest single bid.`);
+	}
+}
 
 function winner(a) {
 	let amount = 1;
