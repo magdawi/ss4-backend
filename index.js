@@ -77,14 +77,16 @@ socket.on('bid', function(auc, val){
 
 	console.log(`bid ${auc} ${val}`);
 	auc = parseInt(auc);
-	val = parseInt(val);
+	val = parseFloat(val);
 
 	if(isNaN(auc) || isNaN(val)) {
 		socket.emit('chat message', 'Wrong Syntax bid <auction> <value>');
 		return;
 	}
 
-	if(val < 1) {
+	val = val.toFixed(2);
+
+	if(val < 0) {
 		socket.emit('chat message', 'You have to bid with a real value');
 		return;
 	}
