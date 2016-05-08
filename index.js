@@ -5,10 +5,12 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 5000;
+const auctionLength = 60000;
 const users = [];
 const auctions = [];
 const products = [
-	{name: "Regenschirm", description: "Regenschirm halt", finish: null}
+	{name: "Regenschirm", description: "Regenschirm halt", finish: false},
+	{name: "Stiefel", description: "Feinste Lederstiefeln aus purpurroten Kalbsleder", finish: false}
 ];
 
 app.use(express.static('public'));
@@ -59,8 +61,9 @@ socket.on('logout', function(){
 });
 
 socket.on('getAuctions', function(){
-	console.log('getAuctions');
-	for (var i = 0; i < auctions.length; i++) {
+	console.log('getAuctions was called');
+	for (let i = 0; i < products.length; i++) {
+		if(products[i].finish !== true)
 		socket.emit('chat message', `Auctions ID: ${i}; <br>Name: ${products[i].name}; <br>Description: ${products[i].description}; <br>Closetime: ${products[i].finish}`);		
 	}
 	
@@ -72,19 +75,36 @@ socket.on('bid', function(auc, val){
 		return;
 	}
 
-	if(products[auc] && !products[auc].finish) {
-		products[auc].finish = new Date(new Date().getTime() + 60000);
-		setTimeout(finishAuction, 60000, auc);
-	}
-
 	console.log(`bid ${auc} ${val}`);
 	auc = parseInt(auc);
 	val = parseInt(val);
+
+	if(isNaN(auc) || isNaN(val)) {
+		socket.emit('chat message', 'Wrong Syntax bid <auction> <value>');
+		return;
+	}
+
+	//check if auction already has finished
+	if(products[auc].finish === true) {
+		socket.emit('chat message', 'This auction has already finished');
+		return;
+	}
+
+	//first bid, start auction
+	if(products[auc] && !products[auc].finish) {
+		products[auc].finish = new Date(new Date().getTime() + auctionLength);
+		console.log("The following auction has started", auc)
+		setTimeout(finishAuction, auctionLength, auc);
+	}
+	
+	//first bid, create array
 	if (auctions[auc] == undefined) auctions[auc] = [];
+
 	var actualwinner = winner(auc);
 	auctions[auc].push({id: socket.id, value: val});
 	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
 	refresh(auc, actualwinner);
+	console.log(auctions);
 });
 
 socket.on('refresh', function(auc){
@@ -97,7 +117,20 @@ socket.on('refresh', function(auc){
 });
 
 function finishAuction(auc) {
+	console.log('The following Auction has finished: ', auc)
+	const won = winner(auc);
+	for(let user of auctions[auc]) {
+		const socketid = user.id
 
+		if (io.sockets.connected[socketid] && socketid !== won.id) {
+		    io.sockets.connected[socketid].emit('chat message', 'You have not won');
+		}
+		if(io.sockets.connected[socketid] && socketid === won.id) {
+			io.sockets.connected[socketid].emit('chat message', 'You won');
+		}
+	}
+
+	products[auc].finish = true;
 }
 
 
