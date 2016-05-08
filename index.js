@@ -20,29 +20,40 @@ http.listen(port, function(){
 });
 
 io.on('connection', function(socket){
-  socket.emit('chat message', 'Please Log In');
+  socket.emit('chat message', 'Login to use AuctionCenter !');
   let current_user = null;
   console.log('connected');
+
+
+// LOGIN
 
 socket.on('login', function(user){
 	if(current_user == null) {
 		var exist = false;
-		for (var i = 0; i < users.length; i++) {
-			if(users[i].name == user || users[i].id == socket.id) exist = true;
+		if (user == "") exist = true;
+		else {
+			for (var i = 0; i < users.length; i++) {
+				if(users[i].name == user || users[i].id == socket.id) exist = true;
+			}
 		}
 		if(!exist) {
 			users.push({name: user, id: socket.id});
 			current_user = {name: user, id: socket.id};
-			socket.emit('chat message', `Login successful! Welcome '${user}'!`);
+			socket.emit('chat message', `Login successful !`);
+			socket.emit('login', `${user}`, 'alert-success', true);
 		}
 		else {
-			socket.emit('chat message', `Login denied!`);
+			socket.emit('chat message', `Login denied !`);
+			socket.emit('login', `${user}`, 'alert-danger', false);
 		}
 	}
 	else {
-		socket.emit('chat message', `You're already logged in!`);
+		socket.emit('chat message', `You're already logged in !`);
+		socket.emit('login', `${user}`, 'alert-danger', false);
 	}
 });
+
+//LOGOUT
 
 socket.on('logout', function(){
 	var runningbids = false;
@@ -54,7 +65,6 @@ socket.on('logout', function(){
 		}
 	}
 
-
 	if(current_user != null && runningbids == false) {
 		console.log(`logout ${socket.id}`);
 		for (var i = 0; i < users.length; i++) {
@@ -63,15 +73,20 @@ socket.on('logout', function(){
 			}
 		}
 		current_user = null;
-		socket.emit('chat message', `Logout was successful!`);
+		socket.emit('chat message', `Logout was successful !`);
+		socket.emit('logout', 'alert-success', true);
 	}
 	else if (current_user != null && runningbids == true) {
-		socket.emit('chat message', `You cannot log out while auctions you have bidden on is not finished!`);
+		socket.emit('chat message', `Auctions you have bidden on are not finished !`);
+		socket.emit('logout', 'alert-warning', false);
 	}
 	else {
-		socket.emit('chat message', `You're not logged in!`);
+		socket.emit('chat message', `You're not logged in !`);
+		socket.emit('logout', 'alert-warning', false);
 	}
 });
+
+// GET ALL AUCTIONS
 
 socket.on('getAuctions', function(){
 	console.log('getAuctions');
@@ -81,6 +96,8 @@ socket.on('getAuctions', function(){
 	}
 	
 });
+
+// BID
 
 socket.on('bid', function(auc, val){
 	if(current_user == null) {
@@ -127,6 +144,8 @@ socket.on('bid', function(auc, val){
 	refresh(auc, actualwinner);
 });
 
+// REFRESH
+
 socket.on('refresh', function(auc){
 	if(current_user == null) {
 		socket.emit('chat message', 'Log in to refresh auctions!');
@@ -135,6 +154,8 @@ socket.on('refresh', function(auc){
 	
 	refresh(auc, socket);
 });
+
+// ADDITIONAL FUNCTIONS
 
 function finishAuction(auc) {
 	console.log('The following Auction has finished: ', auc)
@@ -160,9 +181,6 @@ function finishAuction(auc) {
 			} 
 		}
 	}
-
-	
-
 	products[auc].finish = true;
 }
 
@@ -170,12 +188,10 @@ function finishAuction(auc) {
 function refresh(a, actualwinner) {
 	const won = winner(a);
 
-	//ich bin neuer gewinner
 	if (won.id === socket.id) {
 		socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
 		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
 	}
-	//biete daneben
 	else if (won.id == 0) {
 		socket.emit('chat message', `You don't have the lowest single bid.`);
 		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);

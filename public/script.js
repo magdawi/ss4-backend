@@ -1,5 +1,49 @@
 var socket = io();
 
+// LOGIN
+
+$('#login').submit(function(){
+  socket.emit('login', $('#username').val());
+});
+
+socket.on('login', function(name, alert, bool){
+    $('#info').removeClass('alert-success alert-info alert-warning alert-danger');
+    $('#info').addClass(alert);
+
+    if (bool) {
+      $('#login').addClass('hidden');
+      $('#logout label').text(name);
+
+      $('#logout').removeClass('hidden');
+      $('#nav').removeClass('hidden');
+      $('#content').removeClass('hidden');
+    }
+
+});
+
+// LOGOUT
+
+$('#logout').submit(function(){
+  socket.emit('logout', username);
+});
+
+socket.on('logout', function(alert, bool){
+  $('#info').removeClass('alert-success alert-info alert-warning alert-danger');
+  $('#info').addClass(alert);
+
+  if (bool) {
+    $('#login').removeClass('hidden');
+    $('#logout label').text();
+
+    $('#logout').addClass('hidden');
+    $('#nav').addClass('hidden');
+    $('#content').addClass('hidden');
+  }
+});
+
+
+
+
 $('form').submit(function(){
   //login Marta   -> Access denied / Access successful
   //logout    -> successful / not successful
@@ -8,7 +52,7 @@ $('form').submit(function(){
   //refresh 10   -> best bid / not
   var args = $('#m').val().split(" ");
   switch(args[0]) {
-    case 'login': socket.emit('login', args[1]); $('#username').text(`${args[1]}`); break;
+    //case 'login': socket.emit('login', args[1]); $('#username').text(`${args[1]}`); break;
     case 'logout': socket.emit('logout'); break;
     case 'getAuctions': socket.emit('getAuctions'); break;
     case 'bid': socket.emit('bid', args[1], args[2]); break;
@@ -24,5 +68,6 @@ $('form').submit(function(){
 });
 
 socket.on('chat message', function(msg){
-   $('#messages').append($('<li>').html(msg));
+   $('#info').html(msg);
+   $('#info').removeClass('hidden');
 });

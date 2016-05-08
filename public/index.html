@@ -1,20 +1,62 @@
 <!doctype html>
 <html>
-  <head>
-    <title>AuctionCenter</title>
-    <link href='https://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+ 	<head>
+	  <title>AuctionCenter</title>
+	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	  <link href='https://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+	  <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-	  <div id="header">
-	  	<h1>
-	  		AuctionCenter 
-	  		<small>from Magda & Konrad</small>
-	  	</h1>
-	  	<h3 id="username"></h3>
+		<div id="header" class="row">
+	  	<div class="col-lg-6">
+	  		<h1>
+		  		AuctionCenter
+		  		<small>by Konrad & Magda</small>
+		  	</h1>
+	  	</div>
+	  	<div class="col-lg-6 text-right">
+	  		<form class="form-inline" id="login">
+	  			<input type="text" class="form-control" placeholder="Username" id="username"></input>
+	  			<button class="btn btn-md btn-primary">Login</button>
+	  		</form>
+	  		<form class="form-inline hidden" id="logout">
+	  			<label></label>
+	  			<button class="btn btn-md btn-primary">Logout</button>
+	  		</form>
+	  	</div>
 	  </div>
 
-	  <div id="content">
+	  <div class="row hidden" id="nav">
+			<ul class="nav nav-tabs nav-justified">
+			  <li role="presentation" class="active">
+			  	<a href="#">Show My Bids</a>
+			  </li>
+			  <li role="presentation">
+			  	<a href="#">Show All Auctions</a>
+			  </li>
+			</ul>
+		</div>
+
+		<div class="row" id="inforow">
+  		<div class="col-lg-12">
+  			<p id="info" class="alert alert-info hidden text-center"></p>
+  		</div>
+  	</div>
+
+
+
+	  <div id="content" class="hidden">
+	  	<div class="row">
+				<div id="auction-list">
+					<ul id="auctions"></ul>
+				</div>
+	  	</div>
+
+
+
+
+
+
 	  	<form action="">
 	      <input id="m" autocomplete="off" />
 	      <button>Send</button>

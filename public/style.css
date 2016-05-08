@@ -1,20 +1,80 @@
 * {
-	margin: 0;
+	margin: 0 !important;
 	padding: 0;
 }
+
 
 body {
 	background-color: #F2F2F2;
 	font-family: 'Ubuntu', sans-serif;
 }
 
+/* HEADER */
 #header {
 	background-color: #A0A0A0;
-	text-align: center;
 	color: #F2F2F2;
-	padding: 10px 50px;
+	padding: 20px 50px; 
 }
 
+#header small {
+	font-size: 18px;
+}
+
+.btn-primary {
+	background-color: #7B8380;
+	border: #333;
+}
+
+#header form label {
+	margin-right: 20px !important;
+	padding: 2px;
+	font-size: 20px;
+	border-bottom: 2px solid #50A216;
+}
+
+/* NAV */
+.nav li a {
+	color: #333333;
+}
+
+/* CONTENT */
+#content {
+	margin: auto 100px !important;
+}
+
+.inforow {
+	min-height: 75px;
+}
+
+.alert {
+	width: 40%;
+	margin: 10px auto !important;
+}
+
+/* auctions */
+#auction-list {
+	padding: 20px;
+	margin: 10px;
+}
+
+#auctions {
+	list-style-type: none;
+}
+
+#auctions li {
+	background-color: grey;
+	display: inline-block;
+	padding: 20px;
+	margin: 10px !important;
+	width: 23%;
+}
+
+#auctions .a-name {
+
+}
+
+
+/*
 #header small {
 	font-size: 15px;
 	font-weight: 100;
@@ -67,3 +127,4 @@ body {
 	padding: 10px;
 	border-radius: 5px;
 }
+*/

@@ -1,5 +1,5 @@
 {
-  "name": "node-websocket-example",
+  "name": "auctioncenter",
   "version": "1.0.0",
   "description": "a node app that serves static html over http and handles websockets",
   "main": "index.js",
@@ -15,8 +15,8 @@
     "test": "mocha test.js"
   },
   "author": {
-    "name": "Brigitte Jellinek",
-    "email": "brigitte.jellinek@fh-salzburg.ac.at"
+    "name": "Konrad Kleeberger & Magdalena Wimmer",
+    "email": "mwimmer.mmt-b2014@fh-salzburg.ac.at"
   },
   "license": "MIT"
 }
