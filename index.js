@@ -60,7 +60,7 @@ socket.on('logout', function(){
 
 socket.on('getAuctions', function(){
 	console.log('getAuctions');
-	for (var i = 0; i < auctions.length; i++) {
+	for (var i = 0; i < products.length; i++) {
 		socket.emit('chat message', `Auctions ID: ${i}; <br>Name: ${products[i].name}; <br>Description: ${products[i].description}; <br>Closetime: ${products[i].finish}`);		
 	}
 	
@@ -113,7 +113,6 @@ function refresh(a, actualwinner) {
 	else{
 		socket.emit('chat message', `You don't have the lowest single bid.`);
 		if (actualwinner.id !== won.id) {
-			console.log("winner", won.id);
 			io.sockets.connected[won.id].emit('chat message', `You have now the lowest single bid!!	 (auction ${a})`);
 		}
 	}
