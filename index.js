@@ -5,7 +5,7 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 5000;
-const auctionLength = 60000;
+const auctionLength = 10000;
 const users = [];
 const auctions = [];
 const products = [
@@ -84,9 +84,10 @@ socket.on('bid', function(auc, val){
 		return;
 	}
 
-	val = val.toFixed(2);
+	val = parseFloat(val.toFixed(2));
 
-	if(val < 0) {
+
+	if(val <= 0) {
 		socket.emit('chat message', 'You have to bid with a real value');
 		return;
 	}
@@ -111,7 +112,6 @@ socket.on('bid', function(auc, val){
 	auctions[auc].push({id: socket.id, value: val});
 	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
 	refresh(auc, actualwinner);
-	console.log(auctions);
 });
 
 socket.on('refresh', function(auc){
@@ -126,19 +126,29 @@ socket.on('refresh', function(auc){
 function finishAuction(auc) {
 	console.log('The following Auction has finished: ', auc)
 	const won = winner(auc);
-	const notified = [];
-	for(let user of auctions[auc]) {
-		const socketid = user.id
-
-		if (io.sockets.connected[socketid] && socketid !== won.id && notified.indexOf(socketid) == -1) {
-		    io.sockets.connected[socketid].emit('chat message', 'You have not won');
-		    notified.push(socketid);
-		}
-		if(io.sockets.connected[socketid] && socketid === won.id && notified.indexOf(socketid) == -1) {
-			io.sockets.connected[socketid].emit('chat message', 'You won');
-			notified.push(socketid);
+	let users = {};
+	for(let auction of auctions[auc]) {
+		if(users[auction.id] === undefined) users[auction.id] = {sum: 0, bids: [], id: auction.id};
+		const user = users[auction.id];
+		user.sum += auction.value;
+		user.bids.push(auction.value);
+	}
+	for(let user in users) {
+		user = users[user]
+		if (io.sockets.connected[user.id]) {
+			if(user.id !== won.id) {
+				io.sockets.connected[user.id].emit('chat message', 'You have not won');
+				io.sockets.connected[user.id].emit('chat message', `You're biddings: ${user.bids.join(";")}`);
+				io.sockets.connected[user.id].emit('chat message', `Total spending: ${user.sum}`);
+			} else {
+				io.sockets.connected[user.id].emit('chat message', 'You won');
+				io.sockets.connected[user.id].emit('chat message', `You're biddings: ${user.bids.join(";")}`);
+				io.sockets.connected[user.id].emit('chat message', `Total spending: ${user.sum}`);
+			} 
 		}
 	}
+
+	
 
 	products[auc].finish = true;
 }
