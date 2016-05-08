@@ -45,7 +45,17 @@ socket.on('login', function(user){
 });
 
 socket.on('logout', function(){
-	if(current_user != null) {
+	var runningbids = false;
+
+	for (var i = 0; i < auctions.length; i++) {
+		var arr = auctions[i];
+		for (var j = 0; j < arr.length; j++) {
+			if (arr[j].id == socket.id && products[i].finish != true) runningbids = true;
+		}
+	}
+
+
+	if(current_user != null && runningbids == false) {
 		console.log(`logout ${socket.id}`);
 		for (var i = 0; i < users.length; i++) {
 			if (users[i].id == socket.id) {
@@ -54,6 +64,9 @@ socket.on('logout', function(){
 		}
 		current_user = null;
 		socket.emit('chat message', `Logout was successful!`);
+	}
+	else if (current_user != null && runningbids == true) {
+		socket.emit('chat message', `You cannot log out while auctions you have bidden on is not finished!`);
 	}
 	else {
 		socket.emit('chat message', `You're not logged in!`);
