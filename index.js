@@ -90,10 +90,17 @@ socket.on('bid', function(auc, val){
 
 	console.log(`bid ${auc} ${val}`);
 	auc = parseInt(auc);
-	val = parseInt(val);
+	val = parseFloat(val);
 
 	if(isNaN(auc) || isNaN(val)) {
 		socket.emit('chat message', 'Wrong Syntax bid <auction> <value>');
+		return;
+	}
+
+	val = val.toFixed(2);
+
+	if(val < 0) {
+		socket.emit('chat message', 'You have to bid with a real value');
 		return;
 	}
 
@@ -132,14 +139,17 @@ socket.on('refresh', function(auc){
 function finishAuction(auc) {
 	console.log('The following Auction has finished: ', auc)
 	const won = winner(auc);
+	const notified = [];
 	for(let user of auctions[auc]) {
 		const socketid = user.id
 
-		if (io.sockets.connected[socketid] && socketid !== won.id) {
+		if (io.sockets.connected[socketid] && socketid !== won.id && notified.indexOf(socketid) == -1) {
 		    io.sockets.connected[socketid].emit('chat message', 'You have not won');
+		    notified.push(socketid);
 		}
-		if(io.sockets.connected[socketid] && socketid === won.id) {
+		if(io.sockets.connected[socketid] && socketid === won.id && notified.indexOf(socketid) == -1) {
 			io.sockets.connected[socketid].emit('chat message', 'You won');
+			notified.push(socketid);
 		}
 	}
 
