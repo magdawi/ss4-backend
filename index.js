@@ -140,10 +140,14 @@ function refresh(a, actualwinner) {
 	//ich bin neuer gewinner
 	if (won.id === socket.id) {
 		socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
-		if(actualwinner.id != 'error') io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
+		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
 	}
 	//biete daneben
-	else{
+	else if (won.id == 0) {
+		socket.emit('chat message', `You don't have the lowest single bid.`);
+		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
+	}
+	else {
 		socket.emit('chat message', `You don't have the lowest single bid.`);
 		if (actualwinner.id !== won.id) {
 			io.sockets.connected[won.id].emit('chat message', `You have now the lowest single bid!!	 (auction ${a})`);
@@ -167,7 +171,7 @@ function winner(a) {
 			return arr[i];
 		}
 	}
-	return {id: "error", value: "There is no winner"};
+	return {id: "0", value: "There is no winner"};
 }
 
 function compare(a, b) {
