@@ -84,6 +84,11 @@ socket.on('bid', function(auc, val){
 		return;
 	}
 
+	if(val < 1) {
+		socket.emit('chat message', 'You have to bid with a real value');
+		return;
+	}
+
 	//check if auction already has finished
 	if(products[auc].finish === true) {
 		socket.emit('chat message', 'This auction has already finished');
@@ -119,14 +124,17 @@ socket.on('refresh', function(auc){
 function finishAuction(auc) {
 	console.log('The following Auction has finished: ', auc)
 	const won = winner(auc);
+	const notified = [];
 	for(let user of auctions[auc]) {
 		const socketid = user.id
 
-		if (io.sockets.connected[socketid] && socketid !== won.id) {
+		if (io.sockets.connected[socketid] && socketid !== won.id && notified.indexOf(socketid) == -1) {
 		    io.sockets.connected[socketid].emit('chat message', 'You have not won');
+		    notified.push(socketid);
 		}
-		if(io.sockets.connected[socketid] && socketid === won.id) {
+		if(io.sockets.connected[socketid] && socketid === won.id && notified.indexOf(socketid) == -1) {
 			io.sockets.connected[socketid].emit('chat message', 'You won');
+			notified.push(socketid);
 		}
 	}
 
