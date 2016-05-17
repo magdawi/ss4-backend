@@ -51,6 +51,11 @@ body {
 	margin: 10px auto !important;
 }
 
+/* content */
+#content {
+	padding-bottom: 50px;
+}
+
 /* auctions */
 #auction-list {
 	padding: 20px;
@@ -62,17 +67,47 @@ body {
 }
 
 #auctions li {
-	background-color: grey;
+	background-color: #DDD;
 	display: inline-block;
 	padding: 20px;
 	margin: 10px !important;
-	width: 23%;
+	width: 290px;
+	vertical-align: top;
 }
 
-#auctions .a-name {
-
+#auctions li img{
+	max-width: 250px;
+	max-height: 190px;
+	display: block;
+	margin: 0 auto 5px !important;
 }
 
+#auctions li h2 {
+	margin: 10px 0 !important;
+}
+
+#auctions li h5 {
+	font-weight: bold;
+	margin: 10px auto !important;
+	text-align: center;
+}
+
+#auctions li p {
+	height: 80px;
+}
+
+#auctions li form {
+	margin: 20px 0 0 !important;
+	text-align: center;
+}
+
+#auctions li form input {
+	width: 150px;
+	text-align: center;
+}
+
+#auctions li form button {
+}
 
 /*
 #header small {

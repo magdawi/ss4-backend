@@ -5,12 +5,13 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 5000;
-const auctionLength = 10000;
+const auctionLength = 100000;
 const users = [];
 const auctions = [];
 const products = [
-	{name: "Regenschirm", description: "Regenschirm halt", finish: false},
-	{name: "Stiefel", description: "Feinste Lederstiefeln aus purpurroten Kalbsleder", finish: false}
+	{name: "Regenschirm", description: "Wunderschöner blauer Regenschirm mit lila Punkten, grünen Strichen und kleinen pinken Feen.", thumbnail: "http://racerboxes.com/wp-content/uploads/photo-gallery/thumb/sc-3.jpg", finish: false},
+	{name: "Stiefel", description: "Feinste Lederstiefeln aus purpurroten Kalbsleder", thumbnail: "http://racerboxes.com/wp-content/uploads/photo-gallery/thumb/sc-3.jpg", finish: false},
+	{name: "Cupcake", description: "This is a perfectly formed and delicious chocolate cupcake with topping. (ABCDE)", thumbnail: "http://bit.ly/23N0ho4", finish: false}
 ];
 
 app.use(express.static('public'));
@@ -20,7 +21,7 @@ http.listen(port, function(){
 });
 
 io.on('connection', function(socket){
-  socket.emit('chat message', 'Login to use AuctionCenter !');
+  socket.emit('message', 'Login to use AuctionCenter !');
   let current_user = null;
   console.log('connected');
 
@@ -39,16 +40,16 @@ socket.on('login', function(user){
 		if(!exist) {
 			users.push({name: user, id: socket.id});
 			current_user = {name: user, id: socket.id};
-			socket.emit('chat message', `Login successful !`);
+			socket.emit('message', `Login successful !`);
 			socket.emit('login', `${user}`, 'alert-success', true);
 		}
 		else {
-			socket.emit('chat message', `Login denied !`);
+			socket.emit('message', `Login denied !`);
 			socket.emit('login', `${user}`, 'alert-danger', false);
 		}
 	}
 	else {
-		socket.emit('chat message', `You're already logged in !`);
+		socket.emit('message', `You're already logged in !`);
 		socket.emit('login', `${user}`, 'alert-danger', false);
 	}
 });
@@ -73,15 +74,15 @@ socket.on('logout', function(){
 			}
 		}
 		current_user = null;
-		socket.emit('chat message', `Logout was successful !`);
+		socket.emit('message', `Logout was successful !`);
 		socket.emit('logout', 'alert-success', true);
 	}
 	else if (current_user != null && runningbids == true) {
-		socket.emit('chat message', `Auctions you have bidden on are not finished !`);
+		socket.emit('message', `Auctions you have bidden on are not finished !`);
 		socket.emit('logout', 'alert-warning', false);
 	}
 	else {
-		socket.emit('chat message', `You're not logged in !`);
+		socket.emit('message', `You're not logged in !`);
 		socket.emit('logout', 'alert-warning', false);
 	}
 });
@@ -91,8 +92,9 @@ socket.on('logout', function(){
 socket.on('getAuctions', function(){
 	console.log('getAuctions');
 	for (var i = 0; i < products.length; i++) {
-		if(products[i].finish !== true);
-		socket.emit('chat message', `Auctions ID: ${i}; <br>Name: ${products[i].name}; <br>Description: ${products[i].description}; <br>Closetime: ${products[i].finish}`);		
+		var finishtime = products[i].finish;
+		if (finishtime != true && finishtime != false) finishtime = products[i].finish.toLocaleString();
+		socket.emit('getAuctions', i, products[i].thumbnail, products[i].name, products[i].description, finishtime);		
 	}
 	
 });
@@ -101,30 +103,24 @@ socket.on('getAuctions', function(){
 
 socket.on('bid', function(auc, val){
 	if(current_user == null) {
-		socket.emit('chat message', 'Log in to bid for an auction!');
+		socket.emit('message', 'Log in to bid for an auction!');
 		return;
 	}
 
 	console.log(`bid ${auc} ${val}`);
 	auc = parseInt(auc);
 	val = parseFloat(val);
-
-	if(isNaN(auc) || isNaN(val)) {
-		socket.emit('chat message', 'Wrong Syntax bid <auction> <value>');
-		return;
-	}
-
 	val = parseFloat(val.toFixed(2));
 
 
 	if(val <= 0) {
-		socket.emit('chat message', 'You have to bid with a real value');
+		socket.emit('message', 'You have to bid with a real value');
 		return;
 	}
 
 	//check if auction already has finished
 	if(products[auc].finish === true) {
-		socket.emit('chat message', 'This auction has already finished');
+		socket.emit('message', 'This auction has already finished');
 		return;
 	}
 
@@ -140,19 +136,32 @@ socket.on('bid', function(auc, val){
 
 	var actualwinner = winner(auc);
 	auctions[auc].push({id: socket.id, value: val});
-	socket.emit('chat message', `Your bid on auction ${auc} was received with ${val} €.`);
+	socket.emit('message', `Your bid on auction ${auc} was received with ${val} €.`);
 	refresh(auc, actualwinner);
 });
 
-// REFRESH
+// MY BIDS
 
-socket.on('refresh', function(auc){
+socket.on('myBids', function(){
 	if(current_user == null) {
-		socket.emit('chat message', 'Log in to refresh auctions!');
+		socket.emit('message', 'Log in to see your auctions!');
 		return;
 	}
-	
-	refresh(auc, socket);
+	var auction, bid, count = 0;
+
+	for (var i = 0; i < auctions.length; i++) {
+		auction = auctions[i];
+		for(var j = 0; j < auction.length; j++) {
+			bid = auction[j];
+			if(bid.id == socket.id && count < 1) {
+				var finishtime = products[i].finish;
+				if (finishtime != true && finishtime != false) finishtime = products[i].finish.toLocaleString();
+				socket.emit('myBids', i, products[i].name, products[i].description, products[i].thumbnail, finishtime);
+				count++;
+			}
+		}
+		count = 0;
+	}
 });
 
 // ADDITIONAL FUNCTIONS
@@ -171,13 +180,13 @@ function finishAuction(auc) {
 		user = users[user]
 		if (io.sockets.connected[user.id]) {
 			if(user.id !== won.id) {
-				io.sockets.connected[user.id].emit('chat message', 'You have not won');
-				io.sockets.connected[user.id].emit('chat message', `You're biddings: ${user.bids.join(";")}`);
-				io.sockets.connected[user.id].emit('chat message', `Total spending: ${user.sum}`);
+				io.sockets.connected[user.id].emit('message', 'Auction finished. You have not won.');
+				io.sockets.connected[user.id].emit('message', `You're biddings: ${user.bids.join(";")}`);
+				io.sockets.connected[user.id].emit('message', `Total spending: ${user.sum}`);
 			} else {
-				io.sockets.connected[user.id].emit('chat message', 'You won');
-				io.sockets.connected[user.id].emit('chat message', `You're biddings: ${user.bids.join(";")}`);
-				io.sockets.connected[user.id].emit('chat message', `Total spending: ${user.sum}`);
+				io.sockets.connected[user.id].emit('message', 'Congratulations! You won an auction!');
+				io.sockets.connected[user.id].emit('message', `You're biddings: ${user.bids.join(";")}`);
+				io.sockets.connected[user.id].emit('message', `Total spending: ${user.sum}`);
 			} 
 		}
 	}
@@ -189,17 +198,17 @@ function refresh(a, actualwinner) {
 	const won = winner(a);
 
 	if (won.id === socket.id) {
-		socket.emit('chat message', `At the moment you have the best bid with ${won.value} €.`);
+		socket.emit('message', `At the moment you have the best bid with ${won.value} €.`);
 		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
 	}
 	else if (won.id == 0) {
-		socket.emit('chat message', `You don't have the lowest single bid.`);
+		socket.emit('message', `You don't have the lowest single bid.`);
 		if(actualwinner.id != 0) io.sockets.connected[actualwinner.id].emit('chat message', `You don't have the lowest single bid anymore. (auction ${a})`);
 	}
 	else {
-		socket.emit('chat message', `You don't have the lowest single bid.`);
+		socket.emit('message', `You don't have the lowest single bid.`);
 		if (actualwinner.id !== won.id) {
-			io.sockets.connected[won.id].emit('chat message', `You have now the lowest single bid!!	 (auction ${a})`);
+			io.sockets.connected[won.id].emit('message', `You have now the lowest single bid!!	 (auction ${a})`);
 		}
 	}
 }
@@ -232,8 +241,8 @@ function compare(a, b) {
 
 
 
-socket.on('chat message', function(msg){
-	io.emit('chat message', msg);
+socket.on('message', function(msg){
+	io.emit('message', msg);
   });
 
   socket.on('disconnect', function(){
