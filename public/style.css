@@ -37,29 +37,26 @@ body {
 	color: #333333;
 }
 
-/* CONTENT */
-#content {
-	margin: auto 100px !important;
-}
-
-.inforow {
+#inforow {
+	display: block;
 	min-height: 75px;
 }
 
 .alert {
-	width: 40%;
+	width: 60%;
 	margin: 10px auto !important;
+	display: none;
 }
 
 /* content */
 #content {
 	padding-bottom: 50px;
+	margin: auto 75px !important;
 }
 
 /* auctions */
 #auction-list {
-	padding: 20px;
-	margin: 10px;
+	margin: 10px !important;
 }
 
 #auctions {
@@ -94,6 +91,7 @@ body {
 
 #auctions li p {
 	height: 80px;
+	margin: 0 0 15px !important;
 }
 
 #auctions li form {
@@ -109,57 +107,21 @@ body {
 #auctions li form button {
 }
 
-/*
-#header small {
-	font-size: 15px;
-	font-weight: 100;
+.point {
+	width: 16px;
+	height: 16px;
+	display: inline-block;
+	border-radius: 10px;
 }
 
-#header #username {
-	text-align: right;
-	position: absolute;
-	margin-top: -25px;
+.grey {
+	background-color: #777;
 }
 
-#content {
-	width: 70%;
-	margin: 0 auto;
+.green {
+	background-color: #57BB63;
 }
 
-#content form {
-	text-align: center;
-	margin-top: 20px;
+.red {
+	background-color: #CD0000;
 }
-
-#content form input{
-	height: 25px;
-}
-
-#content form button{
-	height: 35px;
-	width: 70px;
-	background-color: #A0A0A0;
-	color: #F2F2F2;
-	border: none;
-	border-radius: 5px;
-}
-
-#content #nots {
-	padding: 50px;
-}
-
-#content #nots h4{
-	margin-bottom: 25px;
-}
-
-#content #messages {
-	list-style-type: none;
-}
-
-#content #messages li {
-	background-color: #DDD;
-	margin-bottom: 10px;
-	padding: 10px;
-	border-radius: 5px;
-}
-*/

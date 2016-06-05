@@ -6,10 +6,7 @@ $('#login').submit(function(){
   socket.emit('login', $('#username').val());
 });
 
-socket.on('login', function(name, alert, bool){
-    $('#info').removeClass('alert-success alert-info alert-warning alert-danger');
-    $('#info').addClass(alert);
-
+socket.on('login', function(name, bool){
     if (bool) {
       $('#login').addClass('hidden');
       $('#logout label').text(name);
@@ -17,6 +14,8 @@ socket.on('login', function(name, alert, bool){
       $('#logout').removeClass('hidden');
       $('#nav').removeClass('hidden');
       $('#content').removeClass('hidden');
+
+      $('#auctions').empty();
     }
 
 });
@@ -28,9 +27,6 @@ $('#logout').submit(function(){
 });
 
 socket.on('logout', function(alert, bool){
-  $('#info').removeClass('alert-success alert-info alert-warning alert-danger');
-  $('#info').addClass(alert);
-
   if (bool) {
     $('#login').removeClass('hidden');
     $('#logout label').text();
@@ -38,6 +34,8 @@ socket.on('logout', function(alert, bool){
     $('#logout').addClass('hidden');
     $('#nav').addClass('hidden');
     $('#content').addClass('hidden');
+
+    $('#auctions').empty();
   }
 });
 
@@ -47,26 +45,28 @@ $('#allBids').on('click', function(){
   $('#auctions').empty();
   $('#allBids').addClass('active');
   $('#myBids').removeClass('active');
+  $('#myBill').addClass('hidden');
   socket.emit('getAuctions');
 });
 
 socket.on('getAuctions', function(id, thumbnail, name, description, finishtime){
   var closing;
-  if (finishtime == false) closing = "Auction not started yet !";
-  else if (finishtime == true) closing = "Auction closed !";
+  if (finishtime == false) closing = "Not started!";
+  else if (finishtime == true) closing = "Closed !";
   else closing = finishtime;
 
   var form = "";
   if (finishtime != true) {
-    form = `<form action="">
-              <input type="number" step="0.01" min="0" name="bid"/>
-              <button class="btn btn-primary">send bid</button>
+    form = `<form data-form-id="${id}" action="">
+              <input type="number" step="0.01" min="0"/>
+              <input type="hidden" value="${id}"/>
+              <button class="btn btn-primary bid-button">send bid</button>
             </form>`;
   }
 
   $('#auctions').append(` <li>
                             <img src="${thumbnail}">
-                            <h5>### ${closing} ###</h5>
+                            <h5 data-time-id="${id}">### ${closing} ###</h5>
                             <h2>${name}</h2>
                             <p>${description}</p>
                             ${form}
@@ -75,62 +75,70 @@ socket.on('getAuctions', function(id, thumbnail, name, description, finishtime){
 
 // BID
 
-function newBid(auc, val) {
-  console.log(auc, val);
-  //socket.emit('bid', auc, val);
-}
+$('#auctions').on('click', '.bid-button', function(){
+  var val = $(this)[0].parentElement[0].value;
+  var auc = $(this)[0].parentElement[1].value;
+  socket.emit('bid', auc, val);
+});
 
 // SHOW MY BIDS
 $('#myBids').on('click', function(){
   $('#auctions').empty();
   $('#myBids').addClass('active');
   $('#allBids').removeClass('active');
+  $('#myBill').removeClass('hidden');
   socket.emit('myBids');
 });
 
-socket.on('myBids', function(id, name, description, thumbnail, finishtime){
+socket.on('myBids', function(id, name, description, thumbnail, finishtime, color, sum){
   var closing;
-  if (finishtime == false) closing = "Auction not started yet !";
-  else if (finishtime == true) closing = "Auction closed !";
+  if (finishtime == false) closing = "Not started!";
+  else if (finishtime == true) closing = "Closed !";
   else closing = finishtime;
 
   $('#auctions').append(`<li>
                             <img src="${thumbnail}">
-                            <h5>### ${closing} ###</h5>
-                            <h2>${name}</h2>
+                            <h5 data-time-id="${id}">### ${closing} ###</h5>
+                            <h2>${name} <span class="point ${color}" data-point-id="${id}"></span></h2>
                             <p>${description}</p>
+                            <h4><strong>Total sum:</strong> ${sum}</h4>
                           </li>`);
 });
 
-socket.on('message', function(msg){
-   $('#info').html(msg);
-   $('#info').removeClass('hidden');
+socket.on('refreshMyBidsPoints', function(id, color){
+  $(`span[data-point-id="${id}"]`).removeClass("red green grey");
+  $(`span[data-point-id="${id}"]`).addClass(`${color}`);
+});
+
+socket.on('refreshTimeOfAuc', function(id, text){
+  $(`h5[data-time-id="${id}"]`).html(text);
+  if(text == '### Closed ! ###') {
+    $(`form[data-form-id="${id}"]`).html('');
+  }
 });
 
 
+// SOCKET ON DISCONNECT
 
+socket.on('disconnect', function(){
+  $('#login').removeClass('hidden');
+  $('#logout label').text();
 
+  $('#logout').addClass('hidden');
+  $('#nav').addClass('hidden');
+  $('#content').addClass('hidden');
+});
 
+// MESSAGE
+
+socket.on('message', function(msg, alert){
+  $('#info').show();
+  $('#info').removeClass('hidden alert-success alert-info alert-warning alert-danger');
+  $('#info').addClass(alert);
+  $('#info').html(msg);
+  $('#info').delay(5000).fadeOut(1000);
+});
 
 $('form').submit(function(){
-  //login Marta   -> Access denied / Access successful
-  //logout    -> successful / not successful
-  //getAuctions    -> list of running auctions
-  //bid 10 5   -> successful / not successful
-  //refresh 10   -> best bid / not
-  var args = $('#m').val().split(" ");
-  switch(args[0]) {
-    //case 'login': socket.emit('login', args[1]); $('#username').text(`${args[1]}`); break;
-    //case 'logout': socket.emit('logout'); break;
-    //case 'getAuctions': socket.emit('getAuctions'); break;
-    case 'bid': socket.emit('bid', args[1], args[2]); break;
-    //case 'refresh': socket.emit('refresh', args[1]); break;
-    default:
-        $('#messages').append($('<li>').text("Input failed"));
-  }
-  $('#m').val('');
-
-  //socket.emit('chat message', $('#m').val());
-  $('#m').val('');
   return false;
 });

@@ -8,13 +8,13 @@
   </head>
   <body>
 		<div id="header" class="row">
-	  	<div class="col-lg-6">
+	  	<div class="col-lg-6 col-sm-6">
 	  		<h1>
 		  		AuctionCenter
-		  		<small>by Konrad & Magda</small>
+		  		<small>by&nbsp;Konrad&nbsp;&amp;&nbsp;Magda</small>
 		  	</h1>
 	  	</div>
-	  	<div class="col-lg-6 text-right">
+	  	<div class="col-lg-6 col-sm-6 text-right">
 	  		<form class="form-inline" id="login">
 	  			<input type="text" class="form-control" placeholder="Username" id="username"></input>
 	  			<button class="btn btn-md btn-primary">Login</button>
@@ -28,45 +28,28 @@
 
 	  <div class="row hidden" id="nav">
 			<ul class="nav nav-tabs nav-justified">
-			  <li role="presentation" id="myBids">
-			  	<a href="#">Show My Bids</a>
-			  </li>
-			  <li role="presentation" id="allBids">
-			  	<a href="#">Show All Auctions</a>
-			  </li>
+				<li role="presentation" id="myBids">
+					<a href="#">Show My Bids</a>
+				</li>
+				<li role="presentation" id="allBids">
+					<a href="#">Show All Auctions</a>
+				</li>
 			</ul>
 		</div>
 
 		<div class="row" id="inforow">
   		<div class="col-lg-12">
-  			<p id="info" class="alert alert-info hidden text-center"></p>
+  			<p id="info" class="alert alert-info text-center"></p>
   		</div>
   	</div>
 
-
-	  <div id="content" class="hidden">
-	  	<div class="row">
-				<div id="auction-list">
-					<ul id="auctions" class="text-center"></ul>
-				</div>
+	<div id="content" class="hidden">
+		<div class="row">
+			<div id="auction-list">
+				<ul id="auctions" class="text-center"></ul>
+			</div>
 	  	</div>
-
-
-
-
-
-
-	  	<form action="">
-	      <input id="m" autocomplete="off" />
-	      <button>Send</button>
-	    </form>
-
-	    <div id="nots">
-	    	<h4>Notifications:</h4>
-	    	<ul id="messages"></ul>
-	    </div>
-
-	  </div>
+	</div>
 
     
 
