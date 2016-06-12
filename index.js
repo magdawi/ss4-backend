@@ -44,27 +44,25 @@ io.on('connection', function(socket){
 				current_user = {name: user, id: socket.id};
 				if(socket.connected){
 					socket.emit('message', `Login successful !`, 'alert-success');
-					socket.emit('login', `${user}`, true);
+					socket.emit('login', `${user}`);
 				}
 			}
 			else {
 				if(socket.connected){
 					socket.emit('message', `Login denied !`, 'alert-danger');
-					socket.emit('login', `${user}`, false);
 				}
 			}
 		}
 		else {
 			if(socket.connected){
 				socket.emit('message', `You're already logged in !`, 'alert-warning');
-				socket.emit('login', `${user}`, false);
 			}
 		}
 	});
 
 	//LOGOUT
 
-	socket.on('logout', function(){
+	socket.on('logout', function(username){
 		var runningbids = false;
 
 		for (var i = 0; i < auctions.length; i++) {
@@ -76,26 +74,24 @@ io.on('connection', function(socket){
 
 		if(current_user != null && runningbids == false) {
 			for (var i = 0; i < users.length; i++) {
-				if (users[i].id == socket.id) {
+				if (users[i].id == socket.id && users[i].name == username) {
 					users.splice(i, 1);
 				}
 			}
 			current_user = null;
 			if(socket.connected){
 				socket.emit('message', `Logout was successful !`, 'alert-success');
-				socket.emit('logout', 'alert-success', true);
+				socket.emit('logout');
 			}
 		}
 		else if (current_user != null && runningbids == true) {
 			if(socket.connected){
 				socket.emit('message', `Your auctions are not finished !`, 'alert-warning');
-				socket.emit('logout', 'alert-warning', false);
 			}
 		}
 		else {
 			if(socket.connected){
 				socket.emit('message', `You're not logged in !`, 'alert-danger');
-				socket.emit('logout', 'alert-warning', false);
 			}
 		}
 	});

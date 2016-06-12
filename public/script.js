@@ -6,8 +6,7 @@ $('#login').submit(function(){
   socket.emit('login', $('#username').val());
 });
 
-socket.on('login', function(name, bool){
-    if (bool) {
+socket.on('login', function(name){
       $('#login').addClass('hidden');
       $('#logout label').text(name);
 
@@ -16,18 +15,16 @@ socket.on('login', function(name, bool){
       $('#content').removeClass('hidden');
 
       $('#auctions').empty();
-    }
-
 });
 
 // LOGOUT
 
 $('#logout').submit(function(){
+  var username = $('#logout > label').text();
   socket.emit('logout', username);
 });
 
-socket.on('logout', function(alert, bool){
-  if (bool) {
+socket.on('logout', function(){
     $('#login').removeClass('hidden');
     $('#logout label').text();
 
@@ -36,7 +33,6 @@ socket.on('logout', function(alert, bool){
     $('#content').addClass('hidden');
 
     $('#auctions').empty();
-  }
 });
 
 // GET AUCTIONS
