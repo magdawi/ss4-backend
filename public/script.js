@@ -78,7 +78,12 @@ socket.on('getAuctions', function(id, thumbnail, name, description, finishtime){
 $('#auctions').on('click', '.bid-button', function(){
   var val = $(this)[0].parentElement[0].value;
   var auc = $(this)[0].parentElement[1].value;
-  socket.emit('bid', auc, val);
+
+  var regex = new RegExp('([0-9]+([.][0-9]{1,2})?)');
+
+  if (regex.test(val)) {
+    socket.emit('bid', auc, val);
+  }
 });
 
 // SHOW MY BIDS

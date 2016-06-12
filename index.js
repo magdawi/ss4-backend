@@ -21,9 +21,11 @@ http.listen(port, function(){
 });
 
 io.on('connection', function(socket){
-  socket.emit('message', 'Login to use AuctionCenter !', 'alert-info');
-  let current_user = null;
-  console.log('connected');
+	if(socket.connected){
+  		socket.emit('message', 'Login to use AuctionCenter !', 'alert-info');
+  	}
+  	let current_user = null;
+  	console.log('connected');
 
 
 	// LOGIN
@@ -40,17 +42,23 @@ io.on('connection', function(socket){
 			if(!exist) {
 				users.push({name: user, id: socket.id});
 				current_user = {name: user, id: socket.id};
-				socket.emit('message', `Login successful !`, 'alert-success');
-				socket.emit('login', `${user}`, true);
+				if(socket.connected){
+					socket.emit('message', `Login successful !`, 'alert-success');
+					socket.emit('login', `${user}`, true);
+				}
 			}
 			else {
-				socket.emit('message', `Login denied !`, 'alert-danger');
-				socket.emit('login', `${user}`, false);
+				if(socket.connected){
+					socket.emit('message', `Login denied !`, 'alert-danger');
+					socket.emit('login', `${user}`, false);
+				}
 			}
 		}
 		else {
-			socket.emit('message', `You're already logged in !`, 'alert-warning');
-			socket.emit('login', `${user}`, false);
+			if(socket.connected){
+				socket.emit('message', `You're already logged in !`, 'alert-warning');
+				socket.emit('login', `${user}`, false);
+			}
 		}
 	});
 
@@ -73,16 +81,22 @@ io.on('connection', function(socket){
 				}
 			}
 			current_user = null;
-			socket.emit('message', `Logout was successful !`, 'alert-success');
-			socket.emit('logout', 'alert-success', true);
+			if(socket.connected){
+				socket.emit('message', `Logout was successful !`, 'alert-success');
+				socket.emit('logout', 'alert-success', true);
+			}
 		}
 		else if (current_user != null && runningbids == true) {
-			socket.emit('message', `Your auctions are not finished !`, 'alert-warning');
-			socket.emit('logout', 'alert-warning', false);
+			if(socket.connected){
+				socket.emit('message', `Your auctions are not finished !`, 'alert-warning');
+				socket.emit('logout', 'alert-warning', false);
+			}
 		}
 		else {
-			socket.emit('message', `You're not logged in !`, 'alert-danger');
-			socket.emit('logout', 'alert-warning', false);
+			if(socket.connected){
+				socket.emit('message', `You're not logged in !`, 'alert-danger');
+				socket.emit('logout', 'alert-warning', false);
+			}
 		}
 	});
 
@@ -92,14 +106,16 @@ io.on('connection', function(socket){
 		for (var i = 0; i < products.length; i++) {
 			var finishtime = products[i].finish;
 			if (finishtime != true && finishtime != false) finishtime = products[i].finish.toLocaleString();
-			socket.emit('getAuctions', i, products[i].thumbnail, products[i].name, products[i].description, finishtime);		
+			if(socket.connected){
+				socket.emit('getAuctions', i, products[i].thumbnail, products[i].name, products[i].description, finishtime);		
+			}
 		}
 	});
 
 	// BID
 
 	socket.on('bid', function(auc, val){
-		if(current_user == null) {
+		if(current_user == null && socket.connected) {
 			socket.emit('message', 'Login in to bid !', 'alert-warning');
 			return;
 		}
@@ -109,13 +125,17 @@ io.on('connection', function(socket){
 
 
 		if(val <= 0) {
-			socket.emit('message', 'Your bid has to be more than 0€ !', 'alert-warning');
+			if(socket.connected){
+				socket.emit('message', 'Your bid has to be more than 0€ !', 'alert-warning');
+			}
 			return;
 		}
 
 		//check if auction already has finished
 		if(products[auc].finish === true) {
-			socket.emit('message', 'This auction has already finished', 'alert-warning');
+			if(socket.connected){
+				socket.emit('message', 'This auction has already finished', 'alert-warning');
+			}
 			return;
 		}
 
@@ -132,7 +152,9 @@ io.on('connection', function(socket){
 
 		var actualwinner = winner(auc);
 		auctions[auc].push({id: socket.id, value: val});
-		socket.emit('message', `You bid ${val}€.`, 'alert-success');
+		if(socket.connected){
+			socket.emit('message', `You bid ${val}€.`, 'alert-success');
+		}
 		refresh(auc, actualwinner);
 	});
 
@@ -160,7 +182,9 @@ io.on('connection', function(socket){
 						sum = getSum(socket.id, auction);
 						var finishtime = products[i].finish;
 						if (finishtime != true && finishtime != false) finishtime = products[i].finish.toLocaleString();
-						socket.emit('myBids', i, products[i].name, products[i].description, products[i].thumbnail, finishtime, color, sum);
+						if(socket.connected){
+							socket.emit('myBids', i, products[i].name, products[i].description, products[i].thumbnail, finishtime, color, sum);
+						}
 						count++;
 					}
 				}
@@ -200,24 +224,27 @@ io.on('connection', function(socket){
 		var finishtime;
 
 		if (won.id === socket.id) {
-			socket.emit('refreshMyBidsPoints', a, 'green');
-						
-			if(actualwinner.id != 0) {
+			if(socket.connected){
+				socket.emit('refreshMyBidsPoints', a, 'green');
+			}			
+			if(actualwinner.id != 0 && io.sockets.connected[actualwinner.id]) {
 				io.sockets.connected[actualwinner.id].emit('message', `You don't have the lowest single bid anymore. (auction ${a})`, 'alert-warning');
 				io.sockets.connected[actualwinner.id].emit('refreshMyBidsPoints', a, 'red');
 			}
 		}
 		else if (won.id == 0) {
-			socket.emit('refreshMyBidsPoints', a, 'red');
-			
-			if(actualwinner.id != 0) {
+			if(socket.connected){
+				socket.emit('refreshMyBidsPoints', a, 'red');
+			}
+
+			if(actualwinner.id != 0 && io.sockets.connected[actualwinner.id]) {
 				io.sockets.connected[actualwinner.id].emit('message', `You don't have the lowest single bid anymore. (auction ${a})`, 'alert-warning');
 				io.sockets.connected[actualwinner.id].emit('refreshMyBidsPoints', a, 'red');
 			}
 		}
 		else {
 			socket.emit('refreshMyBidsPoints', a, 'red');
-			if (actualwinner.id !== won.id) {
+			if (actualwinner.id !== won.id && io.sockets.connected[won.id]) {
 				io.sockets.connected[won.id].emit('message', `You have now the lowest single bid!! (auction ${a})`, 'alert-success');
 				io.sockets.connected[won.id].emit('refreshMyBidsPoints', a, 'green');
 			}
